@@ -17,9 +17,9 @@ app.use(cors());
 
 // Routers
 //app.use("/auth", authRouter);
-app.use("api/products", productsRouter);
+app.use("/products", productsRouter);
 // app.use("/categories", authentication, categoriesRouter);
-app.use("api/users", UsersRouter);
+app.use("/users", UsersRouter);
 
 //Middleware de errores
 

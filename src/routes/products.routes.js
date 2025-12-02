@@ -6,14 +6,15 @@ import {
   getProductById,
   createProduct,
   deleteProductById,
-} from "../controllers/products.controller";
+  updateProductById,
+} from "../controllers/products.controller.js";
 
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 
 router.post("/create", createProduct);
 
-router.put("/:id", deleteProductById);
+router.put("/:id", updateProductById);
 
 router.delete("/:id", deleteProductById);
 

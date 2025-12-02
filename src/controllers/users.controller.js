@@ -1,5 +1,5 @@
-import { findAllUsersService, findUserByIdService, createUserService, updateUserService, VerifyCredentialsService } from "../services/user.service.js"
-
+import { findAllUsersService, findUserByIdService, createUserService, updateUserService, } from "../services/users.service.js"
+import { basicAuth } from "../middlewares/authentication.js"
 
 export const getAllUsersController = async (req, res) => {
     try {
@@ -44,10 +44,10 @@ export const createUserController = async (req, res) => {
 
 
 
-export const updateProductById = async (req, res) => {
+export const updateUserController = async (req, res) => {
     try {
         const { id } = req.params;
-        const updated = await productsService.updateProduct(id);
+        const updated = await updateUserService(id);
 
         if (!updated) {
             return res.status(404).json({ message: "Producto para actualizar no encontrado" });
@@ -66,7 +66,7 @@ export const updateProductById = async (req, res) => {
 export const loginUserController = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await VerifyCredentialsService(email, password);
+        const user = await basicAuth(email, password);
         res.status(200).json({ msj: "login fue existoso", user })
 
     }
@@ -77,23 +77,4 @@ export const loginUserController = async (req, res) => {
 }
 
 
-
-
-
-
-// export const deleteUserByIdController = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const deleted = await productsService.deleteProduct(id);
-
-//         if (!deleted) {
-//             return res.status(404).json({ message: "Producto para borrar no encontrado" });
-//         }
-//         res.status(200).json({ mjs: "Producto se elimino correctamente" });
-//     }
-//     catch (err) {
-//         res.status(500).json({ msj: "Error al eliminar el producto", error: err.message })
-//     }
-
-// }
 

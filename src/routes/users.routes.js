@@ -1,18 +1,18 @@
 import express from "express";
-import { getAllUsers, getUserById, createUser, updateUser, loginUser } from "../controllers/users.controller.js"
+import { getAllUsersController, getUserByIdController, createUserController, updateUserController, loginUserController } from "../controllers/users.controller.js"
 import { basicAuth, checkAdmin } from "../middlewares/authentication.js"
 
 const router = express.Router();
 
 
-router.get("/", getAllUsers);
-router.get("/:id", getUserById);
+router.get("/", getAllUsersController);
+router.get("/:id", getUserByIdController);
 
-router.post("/", basicAuth, checkAdmin, createUser);
-router.post("/login", loginUser);
+router.post("/", basicAuth, checkAdmin, createUserController);
+router.post("/login", loginUserController);
 
 
-router.put("/:id", updateUser);
+router.put("/:id", updateUserController);
 
 
 export default router

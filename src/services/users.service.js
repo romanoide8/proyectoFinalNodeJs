@@ -68,7 +68,6 @@ export const createUserService = async (data) => {
 
 }
 
-// hacer este user service
 
 
 export const updateUserService = async (id, data) => {
@@ -108,7 +107,6 @@ export const updateUserService = async (id, data) => {
 }
 
 
-
 export const deleteUserService = async (id) => {
     const docRef = doc(db, ruta, id);
     const docSnap = await getDoc(docRef)
@@ -118,3 +116,32 @@ export const deleteUserService = async (id) => {
     await deleteDoc(docRef);
     return true;
 }
+
+
+
+
+export const verifyCredentialsService = async (email, password) => {
+    const snapshot = await getDocs(collection(db, ruta));
+
+    let user = null;
+
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.email === email) {
+            user = { id: doc.id, ...data };
+        }
+    });
+
+    if (!user) {
+        throw new Error("Mail no registrado");
+    }
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+        throw new Error("Contraseña incorrecta!");
+    }
+
+    const { password: _, ...safeUser } = user;
+
+    return safeUser;
+};

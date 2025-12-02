@@ -1,9 +1,9 @@
-import * as productsService from "../services/products.service.js";
+import { gettAllProductsService, getProductByIdService, createProductService, updateProductService, deleteProductService } from "../services/products.service.js"
 
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await productsService.getAllProducts();
-    req.status(200).json(products);
+    const products = await gettAllProductsService();
+    res.status(200).json(products);
   }
   catch (err) {
     res.status(500).json({ msj: "Error al tratar de obtener todos los productos", error: err.message })
@@ -15,7 +15,7 @@ export const getAllProducts = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await productsService.getProductById(id);
+    const product = await getProductByIdService(id);
 
     if (!product) {
       res.status(404).json({ message: "Producto no encontrado" });
@@ -32,7 +32,7 @@ export const getProductById = async (req, res) => {
 export const createProduct = async (req, res) => {
 
   try {
-    const newProduct = await productsService.createProduct(req.body);
+    const newProduct = await createProductService(req.body);
     res.status(201).json({ mjs: "Producto Creado", producto: newProduct });
   }
   catch (err) {
@@ -43,7 +43,7 @@ export const createProduct = async (req, res) => {
 export const deleteProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await productsService.deleteProduct(id);
+    const deleted = await deleteProductService(id);
 
     if (!deleted) {
       return res.status(404).json({ message: "Producto para borrar no encontrado" });
@@ -57,19 +57,25 @@ export const deleteProductById = async (req, res) => {
 }
 
 
-
 export const updateProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await productsService.updateProduct(id);
+    const dataToUpdate = req.body;
+
+    const updated = await updateProductService(id, dataToUpdate);
 
     if (!updated) {
-      return res.status(404).json({ message: "Producto para actualizar no encontrado" });
+      return res.status(404).json({ msj: "Producto no encontrado" });
     }
-    res.status(200).json({ mjs: "Producto se actualizo correctamente" });
-  }
-  catch (err) {
-    res.status(500).json({ msj: "Error al actualizar el producto", error: err.message })
-  }
 
-}
+    res.json({
+      msj: "Producto actualizado correctamente",
+      updated
+    });
+  } catch (error) {
+    res.status(500).json({
+      msj: "Error al actualizar el producto",
+      error: error.message
+    });
+  }
+};
