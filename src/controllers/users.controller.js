@@ -1,10 +1,11 @@
-import { findAllUsersService, findUserByIdService, createUserService, updateUserService, } from "../services/users.service.js"
-import { basicAuth } from "../middlewares/authentication.js"
+import { findAllUsersService, findUserByIdService, createUserService, updateUserService, deleteUserByIdService } from "../services/users.service.js"
+import { basicAuth, checkAdmin } from "../middlewares/authentication.js"
+
 
 export const getAllUsersController = async (req, res) => {
     try {
         const users = await findAllUsersService();
-        req.status(200).json(users);
+        res.status(200).json(users);
     }
     catch (err) {
         res.status(500).json({ msj: "Error al tratar de obtener todos los usuarios", error: err.message })
@@ -47,15 +48,15 @@ export const createUserController = async (req, res) => {
 export const updateUserController = async (req, res) => {
     try {
         const { id } = req.params;
-        const updated = await updateUserService(id);
+        const updated = await updateUserService(id, req.body);
 
         if (!updated) {
-            return res.status(404).json({ message: "Producto para actualizar no encontrado" });
+            return res.status(404).json({ message: "Usuario para actualizar no encontrado" });
         }
-        res.status(200).json({ mjs: "Producto se actualizo correctamente" });
+        res.status(200).json({ mjs: "Usuario se actualizo correctamente" });
     }
     catch (err) {
-        res.status(500).json({ msj: "Error al actualizar el producto", error: err.message })
+        res.status(500).json({ msj: "Error al actualizar el Usuario", error: err.message })
     }
 
 }
@@ -63,18 +64,29 @@ export const updateUserController = async (req, res) => {
 
 
 
-export const loginUserController = async (req, res) => {
+
+
+
+export const loginUserController = (req, res) => {
+    res.status(200).json({
+        msj: "Login exitoso",
+        user: req.user
+    });
+};
+
+
+export const deleteUserByIdController = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await basicAuth(email, password);
-        res.status(200).json({ msj: "login fue existoso", user })
+        const { id } = req.params;
+        const deleted = await deleteUserByIdService(id);
 
+        if (!deleted) {
+            return res.status(404).json({ message: "Usuario para borrar no encontrado" });
+        }
+        res.status(200).json({ mjs: "Usuario se elimino correctamente" });
     }
     catch (err) {
-        res.status(401).json({ msj: err.message })
+        res.status(500).json({ msj: "Error al eliminar el usuario", error: err.message })
     }
 
 }
-
-
-

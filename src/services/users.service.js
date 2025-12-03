@@ -7,117 +7,193 @@ const ruta = "users";
 
 
 
-
 export const findAllUsersService = async () => {
+    const snapshot = await getDocs(collection(db, ruta));
 
-    const totalUsers = await getDocs(collection(db, ruta))
+    const users = snapshot.docs.map(d => {
+        const data = d.data();
 
-    return totalUsers.docs.map(d => {
-        const { password, ...u } = d.data();
-        return new UserModel({ id: doc.id, ...u })
-    })
-}
+        const { password, ...rest } = data;
+
+
+        return {
+            firestoreId: d.id,
+            id: rest.id,
+            nombre: rest.nombre,
+            email: rest.email,
+            rol: rest.rol || "sin rol",
+            ubicacion: rest.ubicacion || "desconocido",
+            experiencia: rest.experiencia || "Sin experiencia"
+        };
+    });
+
+    return users;
+};
+
 
 
 export const findUserByIdService = async (id) => {
+    const numericId = Number(id);
+    const snapshot = await getDocs(collection(db, ruta));
 
-    const snapshot = await getDocs(collection(db, ruta))
+    let foundUser = null;
 
-    const user = snapshot.find(u => u.id === parseInt(id))
-    if (!user) return null;
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
 
-    const { password, ...userData } = user;
-    return userData
+        if (Number(data.id) === numericId) {
+            foundUser = { firestoreId: docSnap.id, ...data };
+        }
+    });
 
-}
+    if (!foundUser) return null;
+
+
+    const { password, ...userData } = foundUser;
+
+    return userData;
+};
+
+
 
 
 
 export const createUserService = async (data) => {
-
     const { nombre, email, password, rol, ubicacion, experiencia } = data;
 
-    const UserCol = getDocs(collection(db, ruta))
-    //const productsCol = collection(db, collectionName);
-
     if (!nombre || !email || !password) {
-        throw new Error("Faltan campos obligatorios (nombre - email - pass)")
+        throw new Error("Faltan campos obligatorios (nombre, email, password)");
     }
 
-    if (users.some((u) => { u.email === email })) {
-        throw new Error("El correo ya existe")
-    }
 
-    const hash = await bcrypt.hash(password, 10);
+    const snapshot = await getDocs(collection(db, ruta));
 
-    const newUser = await addDoc(UserCol, {
-        id: users.length ? (users[users.length - 1].id + 1) : 1,
+    let maxId = 0;
+    let emailExists = false;
+
+    snapshot.forEach((docSnap) => {
+        const user = docSnap.data();
+
+
+        if (user.email === email) emailExists = true;
+
+        if (emailExists) {
+            throw new Error("El correo ya existe");
+        }
+
+
+        if (typeof user.id === "number" && user.id > maxId) {
+            maxId = user.id;
+        }
+    });
+
+
+    const newUserId = maxId + 1;
+
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const usersColRef = collection(db, ruta);
+    const docRef = await addDoc(usersColRef, {
+        id: newUserId,
         nombre,
         email,
-        password: hash,
+        password: hashedPassword,
         rol: rol || "Rol aun no asignado",
         ubicacion: ubicacion || "Ubicacion desconocida",
         experiencia: experiencia || "Sin experiencia"
-    })
-
-    const { password: _, ...userWithoutPassword } = newUser;
-
-    return userWithoutPassword
+    });
 
 
+    return {
+        firestoreId: docRef.id,
+        id: newUserId,
+        nombre,
+        email,
+        rol: rol || "Rol aun no asignado",
+        ubicacion: ubicacion || "Ubicacion desconocida",
+        experiencia: experiencia || "Sin experiencia"
+    };
+};
 
-}
 
 
 
 export const updateUserService = async (id, data) => {
+    const numericId = Number(id);
 
 
-    const userRef = doc(db, ruta, id);
+    const snapshot = await getDocs(collection(db, ruta));
 
-    const userSnap = await getDoc(userRef);
+    let documentToUpdate = null;
 
-    if (!userSnap.exists()) return null;
 
-    const presentData = userSnap.data();
+    snapshot.forEach(docSnap => {
+        const userData = docSnap.data();
+        if (Number(userData.id) === numericId) {
+            documentToUpdate = docSnap;
+        }
+    });
 
-    const newPassword = presentData.password;
-    if (data.password) {
+    if (!documentToUpdate) return null;
+
+    const presentData = documentToUpdate.data() || {};
+
+
+    let newPassword = presentData.password || null;
+
+    if (data.password && typeof data.password === "string" && data.password.trim() !== "") {
         newPassword = await bcrypt.hash(data.password, 10);
     }
 
+
     const updatedUser = {
-        id: currentData.id,
-        nombre: data.nombre || currentData.nombre,
-        email: data.email || currentData.email,
+        id: presentData.id,
+        nombre: data.nombre ?? presentData.nombre,
+        email: data.email ?? presentData.email,
         password: newPassword,
-        rol: data.rol || currentData.rol,
-        ubicacion: data.ubicacion || currentData.ubicacion,
-        experiencia: data.experiencia || currentData.experiencia
+        rol: data.rol ?? presentData.rol,
+        ubicacion: data.ubicacion ?? presentData.ubicacion,
+        experiencia: data.experiencia ?? presentData.experiencia
     };
 
-    await updateDoc(userRef, updatedUser)
+
+    const userRef = doc(db, ruta, documentToUpdate.id);
+    await updateDoc(userRef, updatedUser);
+
 
     const { password, ...userWithoutPassword } = updatedUser;
-
-    return userWithoutPassword
-
-
-
-}
+    return userWithoutPassword;
+};
 
 
-export const deleteUserService = async (id) => {
-    const docRef = doc(db, ruta, id);
-    const docSnap = await getDoc(docRef)
 
-    if (!docSnap.exists()) return null;
 
+export const deleteUserByIdService = async (id) => {
+    const numericId = Number(id);
+
+
+    const snapshot = await getDocs(collection(db, ruta));
+
+    let documentToDelete = null;
+
+
+    snapshot.forEach(docSnap => {
+        const userData = docSnap.data();
+        if (Number(userData.id) === numericId) {
+            documentToDelete = docSnap;
+        }
+    });
+
+
+    if (!documentToDelete) return null;
+
+
+    const docRef = doc(db, ruta, documentToDelete.id);
     await deleteDoc(docRef);
+
     return true;
-}
-
-
+};
 
 
 export const verifyCredentialsService = async (email, password) => {
