@@ -16,7 +16,7 @@ export async function basicAuth(req, res, next) {
 
         const [email, password] = credentials.split(":");
 
-        // Colección correcta
+
         const snapshot = await getDocs(collection(db, "users"));
 
         let user = null;

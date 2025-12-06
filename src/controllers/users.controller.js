@@ -1,5 +1,4 @@
 import { findAllUsersService, findUserByIdService, createUserService, updateUserService, deleteUserByIdService } from "../services/users.service.js"
-import { basicAuth, checkAdmin } from "../middlewares/authentication.js"
 
 
 export const getAllUsersController = async (req, res) => {

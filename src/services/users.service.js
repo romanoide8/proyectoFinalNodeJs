@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { collection, getDoc, getDocs, doc, deleteDoc, updateDoc, addDoc } from "firebase/firestore";
 import { db } from '../firebase/config.js';
-import { UserModel } from '../models/users.models.js';
+
 
 const ruta = "users";
 
@@ -195,29 +195,3 @@ export const deleteUserByIdService = async (id) => {
     return true;
 };
 
-
-export const verifyCredentialsService = async (email, password) => {
-    const snapshot = await getDocs(collection(db, ruta));
-
-    let user = null;
-
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.email === email) {
-            user = { id: doc.id, ...data };
-        }
-    });
-
-    if (!user) {
-        throw new Error("Mail no registrado");
-    }
-
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-        throw new Error("Contraseña incorrecta!");
-    }
-
-    const { password: _, ...safeUser } = user;
-
-    return safeUser;
-};

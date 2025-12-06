@@ -1,5 +1,4 @@
 import { db } from "../firebase/config.js"
-import { ProductModel } from "../models/products.models.js"
 import { collection, getDoc, getDocs, doc, deleteDoc, updateDoc, addDoc } from "firebase/firestore";
 
 const collectionName = "products"
